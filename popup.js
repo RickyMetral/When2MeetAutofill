@@ -1,8 +1,6 @@
-    const CLIENT_ID = '308732964720-bkg72fsuf525lfpjndcr6a6rhelqa134.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyAWcv7zU5QoVzbpPW7kjqsz6y5t2SCH9xc';
     const extension = "https://www.when2meet.com/?"
     let fillButton = document.getElementById("autofill");
-    let stateButton = document.getElementById("extensionState");
+        let stateButton = document.getElementById("extensionState");
 
 
     //
