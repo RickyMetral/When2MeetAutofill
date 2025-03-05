@@ -1,5 +1,14 @@
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.action.setBadgeText({
-        text:"OFF"
+    console.log("When2Meet Autofill Loaded");
+    chrome.storage.local.get("extensionState", (result) => {
+        const state = result.extensionState ?? false ? "ON" : "OFF";
+        chrome.action.setBadgeText({
+            text: state
+        });
     });
 });
+
+chrome.runtime.onMessage.addListener(data => {
+    console.log(data);
+    chrome.storage.local.set(data);
+}) 

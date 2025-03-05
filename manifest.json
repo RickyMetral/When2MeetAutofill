@@ -28,10 +28,15 @@
     "scripting",
     "activeTab",
     "identity",
-    "identity.email"
+    "identity.email",
+    "storage",
+    "tabs"
+    ],
+  "host_permissions": [
+    "https://www.googleapis.com/*"
     ],
   "oauth2": {
-    "client_id": "your id",
+    "client_id": "",
     "scopes": [
       "profile email",
       "https://www.googleapis.com/auth/calendar",
