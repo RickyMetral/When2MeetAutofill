@@ -36,7 +36,7 @@
     "https://www.googleapis.com/*"
     ],
   "oauth2": {
-    "client_id": "",
+    "client_id": "{clientId}.apps.googleusercontent.com",
     "scopes": [
       "profile email",
       "https://www.googleapis.com/auth/calendar",
