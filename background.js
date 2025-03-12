@@ -11,30 +11,41 @@ chrome.runtime.onInstalled.addListener(() => {
 
 //Message to store slider state
 chrome.runtime.onMessage.addListener(sliderState => {
-    console.log(sliderState);
     chrome.storage.local.set(sliderState);
 }) 
 
-//Clearing cached tokens
-// chrome.identity.clearAllCachedAuthTokens(()=>{
-//     console.log("Token deleted");
-// })
-
-async function authenticate() {
-    await chrome.identity.getAuthToken({interactive: true}, (token) => {
-        if (chrome.runtime.lastError) {
-               console.error(chrome.runtime.lastError.message);
-               sendResponse({ status: "error", message: chrome.runtime.lastError.message });
-               return;
-        }
-        sendResponse({ status: "success", message: "Authenticated Successfully", key: token});
-    });
-    return true;//Keeps message channel open for sendresponse
-}
-
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener(async (message) => {
     if (message.action === "authenticate") {
         authenticate();
     }
 });
+
+// Clearing cached tokens
+function clearTokens(){
+    chrome.identity.clearAllCachedAuthTokens(()=>{
+        console.log("Token deleted");
+        chrome.storage.local.remove("key");
+    })
+}
+
+//TODO Add a sign out option when logged in 
+
+async function authenticate() {
+    chrome.storage.local.get("key", (result) =>{
+        //If the token is not expired we dont need to authenticate again
+        if(!isTokenExpired(result.key)){
+            return;
+        }
+    })
+    clearTokens();
+    await chrome.identity.getAuthToken({interactive: true}, (token) => {
+        if (chrome.runtime.lastError) {
+               console.error(chrome.runtime.lastError.message);
+        } else{
+            console.log("Authenticated Successfully");
+        }
+        chrome.storage.local.set({"key": token});
+    });
+}
+
 

@@ -1,50 +1,53 @@
-const extension = "https://www.when2meet.com/?"
+const extension = "https://www.when2meet.com/?*"
 let fillButton = document.getElementById("autofill");
-let stateButton = document.getElementById("extensionState");
-let gapiInited = false;
+let stateSlider = document.getElementById("extensionState");
 
 //When autofill button is clicked, check if page is a when2meet and continue to autofill function
 fillButton.onclick = () => {
-    let tab = getCurrentTab();
     chrome.storage.local.get("extensionState", (result) => {
-        const isChecked = result.extensionState ?? false;
+        const isOn = result.extensionState ?? false;
         //If extension is on
-        if (isChecked) {
-            // Extension is on and the URL matches
-            if(tab.url !== undefined && !tab.url.startsWith(extension)){
-                alert("Could not find a When2Meet");
-                return;
-            }
-            fillWhen2Meet();
+        if (isOn) {
+            fillCurrentTab();
         } else {
-            // TODO: Make a popup saying the extension is off
             alert("Extension is off");
         }
+
     });
-};
-//Listener for slider button  
-stateButton.addEventListener("change", () => {
-    let badgeText = stateButton.checked ? 'ON' : 'OFF';
-    // Save the state in local storage
-    chrome.runtime.sendMessage({extensionState: stateButton.checked});
-    // Update the badge text
-    chrome.action.setBadgeText({
-        text: badgeText,
-    });
-});
- 
+}
+
 //Makes sure slider is in correct position when opening extension
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.get("extensionState", (result) => {
         stateButton.checked = result.extensionState;
     });
 });
 
-async function getCurrentTab() {
-    let queryOptions = { active: true, lastFocusedWindow: true };
-    // `tab` will either be a `tabs.Tab` instance or `undefined`.
-    let [tab] = await chrome.tabs.query(queryOptions);
-    return tab;
+//Listener for slider button  
+stateSlider.addEventListener("change", () => {
+    let badgeText = stateButton.checked ? 'ON' : 'OFF';
+    //Send message to save the state in local storage
+    chrome.runtime.sendMessage({ "extensionState": stateSlider.checked });
+    // Update the badge text
+    chrome.action.setBadgeText({
+        text: badgeText,
+    });
+});
+
+async function fillCurrentTab() {
+    await chrome.tabs.query({ url: extension}, (tab) => {
+        if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError);
+            return;
+        }
+        console.log("window: " + Object.keys(tab));
+        //If the current window is not a when2meet, don't fill it
+        if (Object.keys(tab).length <= 0) {
+            alert("Could not find a When2Meet");
+            return;
+        }
+        fillWhen2Meet(tab.id);
+    });
 }
 
 async function getCalendarList(token) {
@@ -63,29 +66,49 @@ async function getCalendarList(token) {
     }
 }
 
-  // document.getElementById('signout_button').style.visibility = 'visible';
+/**
+ * Selects When2Meet boxes within a given time range.
+ * @param {string} token - The OAuth2 token needed to access the user's calendar
+ */
+
+// document.getElementById('signout_button').style.visibility = 'visible';
 async function fetchCalendarEvents(token) {
-    let calendarId = getCalendarList(token).id;
+    let calendarIds = await getCalendarList(token);//CalendarIds is an array of objects
+    console.log("token:" + token);
     const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
+        `https://www.googleapis.com/calendar/v3/calendars/${calendarIds[2].id}/events`,
         {
             headers: { Authorization: `Bearer ${token}` }
         }
     );
     const data = await response.json();
-    console.log(data);
     return data.items;
 }
 
-function fillWhen2Meet(){
-//Sends message to background script to authenticate user
-    chrome.runtime.sendMessage({action: "authenticate"}, (response) => {
-    console.log(response.message);
-    if(response.staus==="success"){
-      const token = response.key;
-      const calendarId = adka;
-      fetchCalendarEvents(token, calendarId);
-    }
-  })
+/**
+ * Selects When2Meet boxes within a given time range.
+ * @param {number} tabId - Specifies the tabId where the when2meet is
+ */
+
+function fillWhen2Meet(tabId){
+    //Sends message to background script to authenticate user
+    let events;
+    chrome.runtime.sendMessage({ action: "authenticate" });
+    chrome.storage.local.get("key", (result) => {
+        events = fetchCalendarEvents(result.key);
+    })
+    chrome.scripting.executeScript({
+        target: {target: tabId},
+        function: selectMeetingTimes(),
+        args: ["1/10/2024", "1/20/2024"]
+    })
+}
+/**
+ * Selects When2Meet boxes within a given time range.
+ * @param {string} startDate - Specifies the start date of when to start looking based on when2meet length
+ * @param {string} endDate - Specifies the end date of when to start looking based on when2meet length
+ */
+
+function selectMeetingTimes(startDate, endDate){
 
 }
