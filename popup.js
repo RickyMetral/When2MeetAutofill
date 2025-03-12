@@ -19,13 +19,13 @@ fillButton.onclick = () => {
 //Makes sure slider is in correct position when opening extension
 document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.get("extensionState", (result) => {
-        stateButton.checked = result.extensionState;
+        stateSlider.checked = result.extensionState;
     });
 });
 
 //Listener for slider button  
 stateSlider.addEventListener("change", () => {
-    let badgeText = stateButton.checked ? 'ON' : 'OFF';
+    let badgeText = stateSlider.checked ? 'ON' : 'OFF';
     //Send message to save the state in local storage
     chrome.runtime.sendMessage({ "extensionState": stateSlider.checked });
     // Update the badge text
