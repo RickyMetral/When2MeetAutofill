@@ -20,7 +20,7 @@
     "default_popup": "popup.html",
     "web_accessible_resources": [
     {
-      "resources": ["style.css", "images/logo.png", "popup.js"],
+      "resources": ["style.css", "images/logo.png", "popup.js", "content.js"],
       "matches": ["<all_urls>"]
     }]
   },
@@ -33,10 +33,17 @@
     "tabs"
     ],
   "host_permissions": [
-    "https://www.googleapis.com/*"
+    "https://www.googleapis.com/*",
+    "https://www.when2meet.com/?*"
     ],
+  "content_scripts": [
+    {
+    "matches": ["https://www.when2meet.com/?*"],
+    "js": ["content.js"]  
+    }
+  ],
   "oauth2": {
-    "client_id": "{client_id}",
+    "client_id": "",
     "scopes": [
       "profile email",
       "https://www.googleapis.com/auth/calendar",
