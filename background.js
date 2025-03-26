@@ -56,20 +56,3 @@ function clearTokens(){
 function isTokenExpired(token){
     return true;
 }
-
-//Fetching all of a user's available calendars and their summaries
-async function getCalendarList(token) {
-    const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await response.json();
-
-    if(data.items) {
-        console.log("Available Calendars:", data.items);
-        return data.items.map(cal => ({ id: cal.id, name: cal.summary }));
-    } else {
-        console.error("Failed to retrieve calendar list:", data);
-        return [];
-    }
-}
