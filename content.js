@@ -15,8 +15,8 @@ function fillWhen2Meet(){
  */
 
 function fillEvents(timeMin, timeMax, timeSlots){
-    chrome.storage.local.get("key", async (result) => {
-        let calendarIds = await getCalendarList(result.key);//CalendarIds is an array of objects
+    chrome.storage.local.get("token", async (result) => {
+        let calendarIds = await getCalendarList(result.token);//CalendarIds is an array of objects
         let numCalendars = Object.keys(calendarIds).length;
         //If there are calendars to check, fill slots 
         if(numCalendars > 0){
@@ -25,9 +25,9 @@ function fillEvents(timeMin, timeMax, timeSlots){
             alert("Could not find any Google Calendars");
         }
         for(i = 0; i < numCalendars; i++){
-            let events = await fetchCalendarEvents(result.key, calendarIds[i].id, timeMin, timeMax);
+            let events = await fetchCalendarEvents(result.token, calendarIds[i].id, timeMin, timeMax);
             //Makes sure calendar is not empty
-            if(events[0] !== undefined){
+            if(events !== undefined){
                 selectMeetingTimes(events);
             }
         }
@@ -84,6 +84,11 @@ function selectAllMeetingTimes(timeSlots){
     console.log("Filling all Slots");
     selectSlotRange(timeSlots);
 }
+
+/**
+ * Selects When2Meet boxes within a given time range.
+ * @param {Object} Events - A list of events in a single calendar
+ */
 
 function selectMeetingTimes(events){
     console.log("Removing availability");

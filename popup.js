@@ -8,7 +8,6 @@ fillButton.onclick = () => {
         const isOn = result.extensionState ?? false;
         //If extension is on
         if (isOn) {
-
             //Finds tab that contains when2meet url
             chrome.tabs.query({ url: extension}, (tab) => {
                 if (chrome.runtime.lastError) {

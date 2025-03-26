@@ -21,9 +21,9 @@ chrome.runtime.onMessage.addListener(async (message) => {
 });
 
 function authenticate() {
-    chrome.storage.local.get("key", async (result) =>{
+    chrome.storage.local.get("token", async (result) =>{
         //If the token is not expired we dont need to authenticate again
-        if(!isTokenExpired(result.key)){
+        if(!isTokenExpired()){
             return;
         }
         clearTokens();
@@ -33,7 +33,8 @@ function authenticate() {
             } else{
                 console.log("Authenticated Successfully");
             }
-            chrome.storage.local.set({"key": newToken});
+            chrome.storage.local.set({"expirationTime": Date.now + 3600000})//Saves the expiration time of the token locally
+            chrome.storage.local.set({"token": newToken});
             chrome.storage.local.get("tabId", (result) =>{
                 chrome.scripting.executeScript({
                     target: { tabId: result.tabId},
@@ -53,6 +54,12 @@ function clearTokens(){
 }
 
 //Checks if token has expired yet, MAKE SURE TO CHECK FOR UNDEFINED TOKEN
-function isTokenExpired(token){
-    return true;
+function isTokenExpired(){
+    chrome.storage.local.get("expirationTime", (result) =>{
+        if(result.expirationTime && result.expirationTime < Date.now){
+            return true;
+        } else{
+            false;
+        }
+    });
 }
