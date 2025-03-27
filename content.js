@@ -24,7 +24,6 @@ function fillWhen2Meet(){
 
 function fillEvents(timeMin, timeMax, timeSlots){
     chrome.storage.local.get("token", async (result) => {
-        console.log(result.token);
         let calendarIds = await getCalendarList(result.token);//CalendarIds is an array of objects
         let numCalendars = Object.keys(calendarIds).length;
         //If there are calendars to check, fill slots 
@@ -38,6 +37,8 @@ function fillEvents(timeMin, timeMax, timeSlots){
             //Makes sure calendar is not empty
             if(events !== undefined){
                 selectMeetingTimes(events);
+            }else{
+                console.log("events undefined");
             }
         }
     });
@@ -58,9 +59,12 @@ async function fetchCalendarEvents(token, calendarId, timeMin, timeMax) {
             "Accept": "application/json"
         }
     });
+    let data = await response.json();
+    return data.items;
+
 }
 
-/*
+/** 
  * Returns all of a users available calendars to fetch events from
  * @param {string} token - The OAuth2 token needed to access the user's calendar
  */
@@ -111,7 +115,7 @@ function selectMeetingTimes(events){
  * @param {Object} slots - A group of CONSEVUTIVE time slots to be selected
  */
 function selectSlotRange(slots){
-    if(slots === undefined){console.log("Slots null"); return;}
+    if(slots === undefined){console.log("Slots empty"); return;}
     for(let i = 0; i < slots.length; i++){
         //Presses on the first empty slot found to allow for hovering of the rest
         if(slots[i].style.background !=="rgb(51, 153, 0)"){

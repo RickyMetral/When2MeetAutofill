@@ -39,8 +39,9 @@ async function authenticate() {
         } else{
             console.log("Authenticated Successfully");
         }
-        chrome.storage.local.set({"expirationTime": Date.now + 3600000})//Saves the expiration time of the token locally
-        chrome.storage.local.set({"token": newToken});
+        chrome.storage.local.set({"expirationTime": Date.now() + 3600000})//Saves the expiration time of the token locally
+        chrome.storage.local.set({"token": newToken});//Set the new token in local storage
+        //Grab the tabId and execture content script
         chrome.storage.local.get("tabId", (result) =>{
             chrome.scripting.executeScript({
                 target: { tabId: result.tabId},

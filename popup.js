@@ -14,13 +14,7 @@ fillButton.onclick = () => {
                     console.log(chrome.runtime.lastError);
                     return;
                 }
-                //If the current window is not a when2meet, don't fill it
-                if (Object.keys(tab).length <= 0 || tab[0].id === undefined){
-                    alert("Could not find a When2Meet");
-                } else{
-                    chrome.storage.local.set({"tabId": tab[0].id})//Setting the id of the tab found to be a when2meet in local storage
-                    chrome.runtime.sendMessage({"action": "authenticate"});//Telling background to authenticate user
-                }
+                startAutofillWorkflow(tab);
             });
         } else {
             alert("Extension is off");
@@ -45,3 +39,14 @@ stateSlider.addEventListener("change", () => {
             text: badgeText,
         });
 });
+
+
+function startAutofillWorkflow(tab){
+    //If the current window is not a when2meet, don't fill it
+    if (Object.keys(tab).length <= 0 || tab[0].id === undefined){
+        alert("Could not find a When2Meet");
+    } else{
+        chrome.storage.local.set({"tabId": tab[0].id})//Setting the id of the tab found to be a when2meet in local storage
+        chrome.runtime.sendMessage({"action": "authenticate"});//Telling background to authenticate user
+    }
+}
