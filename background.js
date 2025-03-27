@@ -20,28 +20,33 @@ chrome.runtime.onMessage.addListener(async (message) => {
     }
 });
 
-function authenticate() {
-    chrome.storage.local.get("token", async (result) =>{
-        //If the token is not expired we dont need to authenticate again
-        if(!isTokenExpired()){
-            return;
+//Autheticates user request to fill and signls start to content script
+async function authenticate() {
+    //If the token is not expired we dont need to authenticate again
+    if(!isTokenExpired()){
+        chrome.storage.local.get("tabId", (result) =>{
+            chrome.scripting.executeScript({
+                target: { tabId: result.tabId},
+                files: ["content.js"]
+            });
+        })
+        return;
+    }
+    clearTokens();
+    await chrome.identity.getAuthToken({interactive: true}, (newToken) => {
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError.message);
+        } else{
+            console.log("Authenticated Successfully");
         }
-        clearTokens();
-        await chrome.identity.getAuthToken({interactive: true}, (newToken) => {
-            if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError.message);
-            } else{
-                console.log("Authenticated Successfully");
-            }
-            chrome.storage.local.set({"expirationTime": Date.now + 3600000})//Saves the expiration time of the token locally
-            chrome.storage.local.set({"token": newToken});
-            chrome.storage.local.get("tabId", (result) =>{
-                chrome.scripting.executeScript({
-                    target: { tabId: result.tabId},
-                    files: ["content.js"]
-                });
-            })
-        });
+        chrome.storage.local.set({"expirationTime": Date.now + 3600000})//Saves the expiration time of the token locally
+        chrome.storage.local.set({"token": newToken});
+        chrome.storage.local.get("tabId", (result) =>{
+            chrome.scripting.executeScript({
+                target: { tabId: result.tabId},
+                files: ["content.js"]
+            });
+        })
     });
 }
 
@@ -53,7 +58,7 @@ function clearTokens(){
    });
 }
 
-//Checks if token has expired yet, MAKE SURE TO CHECK FOR UNDEFINED TOKEN
+//Checks if token has expired yet
 function isTokenExpired(){
     chrome.storage.local.get("expirationTime", (result) =>{
         if(result.expirationTime && result.expirationTime < Date.now){
