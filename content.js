@@ -1,5 +1,13 @@
-//Calling everything when script is ran
-fillWhen2Meet();
+//Making sure the user is logged into when2meet and slots displayed
+{
+    const firstSlot = document.querySelector("[id^=YouTime]");
+    if((firstSlot.offsetParent !== null)){
+        console.log("Slots Available");
+        fillWhen2Meet();
+    } else{
+        console.log("Slots Unavailable")
+    }
+}
 
 function fillWhen2Meet(){
     const timeSlots = document.querySelectorAll("[id^=YouTime]");
@@ -10,12 +18,13 @@ function fillWhen2Meet(){
 
 /**
  * Gets all the calendarIds, events and calls function to click on slots based on that data
- * @param {ISOstring} timeMin - The first available time slot of the wnen2meet
- * @param {ISOstring} tmeMax - The last available time slot of the wnen2meet
+ * @param {ISOstring} timeMin - The first available time slot of the when2meet
+ * @param {ISOstring} timeMax - The last available time slot of the wnen2meet
  */
 
 function fillEvents(timeMin, timeMax, timeSlots){
     chrome.storage.local.get("token", async (result) => {
+        console.log(result.token);
         let calendarIds = await getCalendarList(result.token);//CalendarIds is an array of objects
         let numCalendars = Object.keys(calendarIds).length;
         //If there are calendars to check, fill slots 
@@ -24,7 +33,7 @@ function fillEvents(timeMin, timeMax, timeSlots){
         } else{
             alert("Could not find any Google Calendars");
         }
-        for(i = 0; i < numCalendars; i++){
+        for(let i = 0; i < numCalendars; i++){
             let events = await fetchCalendarEvents(result.token, calendarIds[i].id, timeMin, timeMax);
             //Makes sure calendar is not empty
             if(events !== undefined){
@@ -49,13 +58,9 @@ async function fetchCalendarEvents(token, calendarId, timeMin, timeMax) {
             "Accept": "application/json"
         }
     });
-
-    let data = await response.json();
-    console.log("Events", data.items);
-    return data.items;
 }
 
-/**
+/*
  * Returns all of a users available calendars to fetch events from
  * @param {string} token - The OAuth2 token needed to access the user's calendar
  */
@@ -125,7 +130,7 @@ function selectSlotRange(slots){
 
 /**
  * Selects When2Meet boxes within a given time range.
- * @param {Object} slots - A group of CONSEVUTIVE time slots to be de-selected
+ * @param {Object} slots - A group of CONSECUTIVE time slots to be de-selected
  */
 function deselectSlotRange(slots){
     if(slots === undefined || slots.length == 0){console.log("Slots empty"); return;}
@@ -146,7 +151,7 @@ function deselectSlotRange(slots){
 }
 
 function selectTimeRange(timeMin, timeMax){
-    const slots = [document.querySelectorAll("[id^=YouTime]")].filter((element) => {
+    const slots = Array.from(document.querySelectorAll("[id^=YouTime]")).filter((element) => {
         const timestamp = parseInt(element.id.replace('YouTime', ''), 10);
         return timestamp >= timeMin && timestamp <= timeMax;
     });
@@ -170,7 +175,7 @@ function deselectTimeRange(timeMin, timeMax){
  * @param {int} imestamp- A unix epoch timestamp to be compared
  */
 function isInRange(startHour, endHour, timestamp) {
-    const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
+    const date = new Date(timestamp * 1000); // Convert seconds to milliseconds
     const hours = date.getUTCHours();
     return hours < startHour || hours >= endHour;  // Before beginngin or after end
 }
