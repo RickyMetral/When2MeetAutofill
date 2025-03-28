@@ -33,7 +33,7 @@ async function authenticate() {
         return;
     }
     clearTokens();
-    await chrome.identity.getAuthToken({interactive: true}, (newToken) => {
+    chrome.identity.getAuthToken({interactive: true}, (newToken) => {
         if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError.message);
         } else{
@@ -60,12 +60,10 @@ function clearTokens(){
 }
 
 //Checks if token has expired yet
-function isTokenExpired(){
-    chrome.storage.local.get("expirationTime", (result) =>{
-        if(result.expirationTime && result.expirationTime < Date.now){
-            return true;
-        } else{
-            false;
-        }
+function isTokenExpired() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get("expirationTime", (result) => {
+            resolve(result.expirationTime && result.expirationTime < Date.now());
+        });
     });
 }
