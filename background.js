@@ -14,6 +14,7 @@ chrome.runtime.onMessage.addListener(sliderState => {
     chrome.storage.local.set(sliderState);
 }); 
 
+//Message to authenticate
 chrome.runtime.onMessage.addListener(async (message) => {
     if (message.action === "authenticate") {
         authenticate();
@@ -55,7 +56,7 @@ async function authenticate() {
 function clearTokens(){
     chrome.identity.clearAllCachedAuthTokens(()=>{
         console.log("Token deleted");
-        chrome.storage.local.remove("key");
+        chrome.storage.local.remove("token");
    });
 }
 
