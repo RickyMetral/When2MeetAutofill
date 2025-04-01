@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 stateSlider.addEventListener("change", () => {
     let badgeText = stateSlider.checked ? 'ON' : 'OFF';
     //Send message to save the state in local storage
-    chrome.runtime.sendMessage({ "extensionState": stateSlider.checked });
+    chrome.runtime.sendMessage({ "action": "updateState", "extensionState": stateSlider.checked });
         // Update the badge text
         chrome.action.setBadgeText({
             text: badgeText,

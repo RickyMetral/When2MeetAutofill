@@ -20,33 +20,40 @@ function fillWhen2Meet(){
  * Gets all the calendarIds, events and calls function to click on slots based on that data
  * @param {ISOstring} timeMin - The first available time slot of the when2meet
  * @param {ISOstring} timeMax - The last available time slot of the wnen2meet
+ * @param {Object} timeSlots - All timeSlots available in the DOM
  */
+async function fillEvents(timeMin, timeMax, timeSlots) {
+    //Retrieves the auth token, retrieves all the available calendars and caches them
+    chrome.storage.local.get(["calendars", "token"], async (result) => {
+        let calendars = result.calendars ?? await getCalendarList(result.token);//If the calendars have not already been cached, retrieve them
+        chrome.storage.local.set({ "calendars": calendarIds });
 
-function fillEvents(timeMin, timeMax, timeSlots){
-    chrome.storage.local.get("token", async (result) => {
-        let calendarIds = await getCalendarList(result.token);//CalendarIds is an array of objects
-        let numCalendars = Object.keys(calendarIds).length;
-        //If there are calendars to check, fill slots 
-        if(numCalendars > 0){
-            selectAllMeetingTimes(timeSlots);
-        } else{
+        if (calendars.length === 0) {
             alert("Could not find any Google Calendars");
+            return;
         }
-        for(let i = 0; i < numCalendars; i++){
-            let events = await fetchCalendarEvents(result.token, calendarIds[i].id, timeMin, timeMax);
-            //Makes sure calendar is not empty
-            if(events !== undefined){
-                selectMeetingTimes(events);
-            }else{
-                console.log("events undefined");
-            }
-        }
+
+        selectAllMeetingTimes(timeSlots); // Fill all slots first
+
+        const eventPromises = calendars.map(cal =>
+            fetchCalendarEvents(result.token, cal.id, timeMin, timeMax)
+        );
+
+        const allEvents = await Promise.all(eventPromises);
+
+        allEvents.forEach(events => {
+            if (events) selectMeetingTimes(events, timeSlots);
+        });
     });
 }
+
 
 /**
  * Selects When2Meet boxes within a given time range.
  * @param {string} token - The OAuth2 token needed to access the user's calendar
+ * @param {Object} calendarId - The id the calendar to fetch events from
+ * @param {ISOstring} timeMin - The first time slot in the time range of a given event
+ * @param {ISOstring} timeMax - The last time slot in the time range of a given event
  */
 
 async function fetchCalendarEvents(token, calendarId, timeMin, timeMax) {
@@ -61,7 +68,6 @@ async function fetchCalendarEvents(token, calendarId, timeMin, timeMax) {
     });
     let data = await response.json();
     return data.items;
-
 }
 
 /** 
@@ -97,16 +103,16 @@ function selectAllMeetingTimes(timeSlots){
 /**
  * Selects When2Meet boxes within a given time range.
  * @param {Object} Events - A list of events in a single calendar
+ * @param {Object} timeSlots - All timeSlots available in the DOM
  */
 
-function selectMeetingTimes(events){
+function selectMeetingTimes(events, timeSlots){
     console.log("Removing availability");
-    events.forEach(event => {
-        if(event.status === "confirmed"){
-            const timeMin = Math.floor(new Date(event.start.dateTime).getTime()/1000);
-            const timeMax = Math.floor(new Date(event.end.dateTime).getTime()/1000);
-            deselectTimeRange(timeMin, timeMax);
-        }
+    const confirmedEvents = events.filter(event => event.status === "confirmed");
+    confirmedEvents.forEach(event => {
+        const timeMin = Math.floor(new Date(event.start.dateTime).getTime()/1000);
+        const timeMax = Math.floor(new Date(event.end.dateTime).getTime()/1000);
+        deselectTimeRange(timeMin, timeMax, timeSlots);
     });
 }
 
@@ -154,8 +160,14 @@ function deselectSlotRange(slots){
     }
 }
 
-function selectTimeRange(timeMin, timeMax){
-    const slots = Array.from(document.querySelectorAll("[id^=YouTime]")).filter((element) => {
+/**
+ * Gets all the calendarIds, events and calls function to click on slots based on that data
+ * @param {ISOstring} timeMin - The first time slot in the time range of a given event
+ * @param {ISOstring} timeMax - The last time slot in the time range of a given event
+ * @param {Object} timeSlots - All timeSlots available in the DOM
+ */
+function selectTimeRange(timeMin, timeMax, timeSlots){
+    const slots = Array.from(timeSlots).filter((element) => {
         const timestamp = parseInt(element.id.replace('YouTime', ''), 10);
         return timestamp >= timeMin && timestamp <= timeMax;
     });
@@ -163,8 +175,14 @@ function selectTimeRange(timeMin, timeMax){
     selectSlotRange(slots);
 }
 
-function deselectTimeRange(timeMin, timeMax){
-    const slots = Array.from(document.querySelectorAll("[id^=YouTime]")).filter((element) => {
+/**
+ * Gets all the calendarIds, events and calls function to click on slots based on that data
+ * @param {ISOstring} timeMin - The first time slot in the time range of a given event
+ * @param {ISOstring} timeMax - The last time slot in the time range of a given event
+ * @param {Object} timeSlots - All timeSlots available in the DOM
+ */
+function deselectTimeRange(timeMin, timeMax, timeSlots){
+    const slots = Array.from(timeSlots).filter((element) => {
         const timestamp = parseInt(element.id.replace('YouTime', ''), 10);
         return timestamp >= timeMin && timestamp <= timeMax;
     });
@@ -188,7 +206,6 @@ function isInRange(startHour, endHour, timestamp) {
 * Clicks any single given when2meet slot
  * @param {Object} slot - Expects a div of the timeslot
  */
-
 function clickSlot(slot){
     slot.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     slot.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
