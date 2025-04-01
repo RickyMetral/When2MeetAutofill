@@ -2,54 +2,46 @@
 chrome.runtime.onInstalled.addListener(() => {
     console.log("When2Meet Autofill Loaded");
     chrome.storage.local.get("extensionState", (result) => {
-        const state = result.extensionState ?? false ? "ON" : "OFF";
+        const state = (result.extensionState ?? false) ? "ON" : "OFF";
         chrome.action.setBadgeText({
             text: state
         });
     });
 });
 
-//Message to store slider state
-chrome.runtime.onMessage.addListener(sliderState => {
-    chrome.storage.local.set(sliderState);
-}); 
-
-//Message to authenticate
-chrome.runtime.onMessage.addListener(async (message) => {
-    if (message.action === "authenticate") {
-        authenticate();
+//listener for sliderstate and authentication messages
+chrome.runtime.onMessage.addListener((message) => {
+    switch (message.action) {
+        case "authenticate":
+            authenticate();
+            break;
+        case "updateState":
+            chrome.storage.local.set(message);
+            break;
+        default:
+            console.warn("Unknown message action:", message.action);
     }
 });
+
+
 
 //Autheticates user request to fill and signls start to content script
 async function authenticate() {
     //If the token is not expired we dont need to authenticate again
-    if(!isTokenExpired()){
-        chrome.storage.local.get("tabId", (result) =>{
-            chrome.scripting.executeScript({
-                target: { tabId: result.tabId},
-                files: ["content.js"]
-            });
-        })
-        return;
+    if(await isTokenExpired()){
+        clearTokens();
+        chrome.identity.getAuthToken({interactive: true}, (newToken) => {
+            if (chrome.runtime.lastError) {
+                console.error(chrome.runtime.lastError.message);
+            } else{
+                console.log("Authenticated Successfully");
+            }
+            chrome.storage.local.set({"token": newToken, "expirationTime": Date.now() + 3600000})//Saves the expiration time of the token locally and sets the new token in local storage
+            launchContentScript();
+        });
+    }else{
+        launchContentScript();
     }
-    clearTokens();
-    chrome.identity.getAuthToken({interactive: true}, (newToken) => {
-        if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError.message);
-        } else{
-            console.log("Authenticated Successfully");
-        }
-        chrome.storage.local.set({"expirationTime": Date.now() + 3600000})//Saves the expiration time of the token locally
-        chrome.storage.local.set({"token": newToken});//Set the new token in local storage
-        //Grab the tabId and execture content script
-        chrome.storage.local.get("tabId", (result) =>{
-            chrome.scripting.executeScript({
-                target: { tabId: result.tabId},
-                files: ["content.js"]
-            });
-        })
-    });
 }
 
 // Clearing cached tokens
@@ -67,4 +59,15 @@ function isTokenExpired() {
             resolve(result.expirationTime && result.expirationTime < Date.now());
         });
     });
+}
+
+
+//Gets tabid and launches content script
+function launchContentScript(){
+    chrome.storage.local.get("tabId", (result) =>{
+        chrome.scripting.executeScript({
+            target: { tabId: result.tabId},
+            files: ["content.js"]
+        });
+    })
 }
