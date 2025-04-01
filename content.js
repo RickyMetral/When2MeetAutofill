@@ -26,7 +26,7 @@ async function fillEvents(timeMin, timeMax, timeSlots) {
     //Retrieves the auth token, retrieves all the available calendars and caches them
     chrome.storage.local.get(["calendars", "token"], async (result) => {
         let calendars = result.calendars ?? await getCalendarList(result.token);//If the calendars have not already been cached, retrieve them
-        chrome.storage.local.set({ "calendars": calendarIds });
+        chrome.storage.local.set({ "calendars": calendars });
 
         if (calendars.length === 0) {
             alert("Could not find any Google Calendars");
