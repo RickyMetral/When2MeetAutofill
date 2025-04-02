@@ -24,8 +24,11 @@ fillButton.onclick = () => {
 
 //Makes sure slider is in correct position when opening extension
 document.addEventListener("DOMContentLoaded", () => {
-    chrome.storage.local.get("extensionState", (result) => {
+    chrome.storage.local.get(["extensionState", "calendars"], (result) => {
         stateSlider.checked = result.extensionState;
+        if(result.calendars !== undefined){
+            displayCalendarCheckboxes(result.calendars);
+        }
     });
 });
 
@@ -40,7 +43,6 @@ stateSlider.addEventListener("change", () => {
         });
 });
 
-
 function startAutofillWorkflow(tab){
     //If the current window is not a when2meet, don't fill it
     if (Object.keys(tab).length <= 0 || tab[0].id === undefined){
@@ -49,4 +51,24 @@ function startAutofillWorkflow(tab){
         chrome.storage.local.set({"tabId": tab[0].id})//Setting the id of the tab found to be a when2meet in local storage
         chrome.runtime.sendMessage({"action": "authenticate"});//Telling background to authenticate user
     }
+}
+
+function displayCalendarCheckboxes(calendars) {
+    // const container = document.querySelector(".container");
+    // container.innerHTML = ""; // Clear previous checkboxes if any
+    // console.log("CONTAINER" + container);
+
+    // calendars.forEach(cal => {
+    //     const label = document.createElement("label");
+    //     label.setAttribute("class", "checkbox");
+    //     const input = document.createElement("input");
+    //     input.setAttribute("tpye", "checkbox");
+    //     input.setAttribute("checked", "checked");
+    //     const span = document.createElement("span");
+    //     span.setAttribute("class", "checkmark");
+    //     label.appendChild(input);
+    //     label.appendChild(span);
+    //     container.appendChild(label);
+    //     container.appendChild(document.createElement("br")); // Line break for spacing
+    // });
 }
