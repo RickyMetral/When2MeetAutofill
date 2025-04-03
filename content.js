@@ -26,8 +26,7 @@ async function fillEvents(timeMin, timeMax, timeSlots) {
     //Retrieves the auth token, retrieves all the available calendars and caches them
     chrome.storage.local.get(["calendars", "token"], async (result) => {
         let calendars = result.calendars ?? await getCalendarList(result.token);//If the calendars have not already been cached, retrieve them
-        chrome.storage.local.set({ "calendars": calendars });
-
+        chrome.storage.local.set({ "calendars": calendars });//Calendars have two vars, calendars.id is the id and calendars.name is the summary
         if (calendars.length === 0) {
             alert("Could not find any Google Calendars");
             return;
@@ -35,8 +34,18 @@ async function fillEvents(timeMin, timeMax, timeSlots) {
 
         selectAllMeetingTimes(timeSlots); // Fill all slots first
 
-        const eventPromises = calendars.map(cal =>
-            fetchCalendarEvents(result.token, cal.id, timeMin, timeMax)
+        const eventPromises = calendars.map(cal => 
+            new Promise((resolve) => {
+                //Fetching the checked state of this calendar
+                chrome.storage.local.get([cal.name], (calendar) => {
+                    //Checking the if the calendar is checked or not
+                    if (calendar[cal.name] === undefined || calendar[cal.name] === true) {
+                        resolve(fetchCalendarEvents(result.token, cal.id, timeMin, timeMax));
+                    } else {
+                        resolve(null);
+                    }
+                });
+            })
         );
 
         const allEvents = await Promise.all(eventPromises);
@@ -47,7 +56,6 @@ async function fillEvents(timeMin, timeMax, timeSlots) {
     });
 }
 
-
 /**
  * Selects When2Meet boxes within a given time range.
  * @param {string} token - The OAuth2 token needed to access the user's calendar
@@ -55,7 +63,6 @@ async function fillEvents(timeMin, timeMax, timeSlots) {
  * @param {ISOstring} timeMin - The first time slot in the time range of a given event
  * @param {ISOstring} timeMax - The last time slot in the time range of a given event
  */
-
 async function fetchCalendarEvents(token, calendarId, timeMin, timeMax) {
     let url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`;
 
@@ -188,7 +195,6 @@ function deselectTimeRange(timeMin, timeMax, timeSlots){
     });
     deselectSlotRange(slots);
 }
-
 
 /**
  * Returns bool based on if Unix timestamp is wihin the hours of the given range
