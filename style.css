@@ -1,39 +1,63 @@
-body{
-    background-color: grey;
-    display:flex;
-    align-items:center;
-    justify-content: center ;
-    width:min-content;
+body {
+  background-color: grey;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min-content;
 }
+
+.container .button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Hide the default checkbox */
-.switch input[type=checkbox]{
+.switch input[type=checkbox] {
   display: none;
+}
+
+.header{
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 19px;
 }
 
 /* Switch container */
 .switch {
   display: flex;
+  justify-content: center;
+  align-items: center;
   width: 60px;
   height: 30px;
   position: relative;
   cursor: pointer;
-  margin-top: 15px;
+  margin: auto;
+  margin-top: 5px;
 }
 
 /* Slider (button) */
 .slider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
   width: 100%;
   height: 100%;
+  margin-left: 50%;
+  margin-right: 50%;
   background-color: #ccc;
   border-radius: 15px;
   transition: background 0.3s ease-in-out;
 }
+
 .switch-label {
   font-size: 16px;
   font-weight: bold;
   color: white;
 }
+
 /* The circle inside the button */
 .slider::before {
   content: "";
@@ -48,11 +72,11 @@ body{
 }
 
 /* When checkbox is checked */
-input[type=checkbox]:checked + .slider {
+input[type=checkbox]:checked+.slider {
   background-color: #2196F3;
 }
-  
-input[type=checkbox]:checked + .slider::before {
+
+input[type=checkbox]:checked+.slider::before {
   transform: translateX(30px);
 }
 
@@ -63,11 +87,11 @@ button {
   border: none;
   border-radius: 5px;
   font-size: 16px;
-  cursor:pointer;
+  cursor: pointer;
   box-shadow: 0 5px #665;
 }
 
-button:hover{
+button:hover {
   background-color: #ccc;
 }
 
@@ -76,7 +100,6 @@ button:active {
   transform: translateY(3px);
   transition: transform 0.01s ease-in;
 }
-
 
 .checkbox {
   display: flex;
@@ -117,14 +140,14 @@ button:active {
 }
 
 /* On mouse-over, add a grey background color */
-.checkbox:hover input ~ .checkmark {
+.checkbox:hover input~.checkmark {
   background-color: #ccc;
   justify-content: center;
   align-items: center;
 }
 
 /* When the checkbox is checked, add a blue background */
-.checkbox input:checked ~ .checkmark {
+.checkbox input:checked~.checkmark {
   background-color: #2196F3;
 }
 
@@ -136,7 +159,7 @@ button:active {
 }
 
 /* Show the checkmark when checked */
-.checkbox input:checked ~ .checkmark:after {
+.checkbox input:checked~.checkmark:after {
   display: block;
 }
 

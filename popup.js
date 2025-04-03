@@ -53,22 +53,41 @@ function startAutofillWorkflow(tab){
     }
 }
 
+//Injects the html for a checkbox for each calendar
 function displayCalendarCheckboxes(calendars) {
-    // const container = document.querySelector(".container");
-    // container.innerHTML = ""; // Clear previous checkboxes if any
-    // console.log("CONTAINER" + container);
+    const container = document.querySelector(".container");
+    const header = document.createElement("span");
+    header.setAttribute("class", "header");
+    header.innerHTML = "Available Calendars:";
+    header.style.display = "inline-block";
+    container.appendChild(header);
 
-    // calendars.forEach(cal => {
-    //     const label = document.createElement("label");
-    //     label.setAttribute("class", "checkbox");
-    //     const input = document.createElement("input");
-    //     input.setAttribute("tpye", "checkbox");
-    //     input.setAttribute("checked", "checked");
-    //     const span = document.createElement("span");
-    //     span.setAttribute("class", "checkmark");
-    //     label.appendChild(input);
-    //     label.appendChild(span);
-    //     container.appendChild(label);
-    //     container.appendChild(document.createElement("br")); // Line break for spacing
-    // });
+    calendars.forEach(cal => {
+        const label = document.createElement("label");
+        label.setAttribute("class", "checkbox");
+        label.innerHTML = cal.name;
+
+        const input = document.createElement("input");
+        input.setAttribute("type", "checkbox");
+        //Saving the most recent state of the checkmark
+        input.addEventListener("change", () => {
+            chrome.storage.local.set({[cal.name]: input.checked});
+        });
+        //As long as the previous state was not false (undefined or true) we can assume to check the box and save that state
+        chrome.storage.local.get([cal.name], (result) =>{
+            //If the button was last saved checked set it to checked when reopening the popup
+            if(result[cal.name] === undefined || result[cal.name]){
+                input.setAttribute("checked", "checked");
+            }
+            chrome.storage.local.set({[cal.name]: input.checked});//Save the final state of this input
+        });
+
+        const span = document.createElement("span");
+        span.setAttribute("class", "checkmark");
+
+        label.appendChild(input);
+        label.appendChild(span);
+        container.appendChild(label);
+        container.appendChild(document.createElement("br")); // Line break for spacing
+    });
 }
