@@ -104,9 +104,8 @@ button:active {
 .checkbox {
   display: flex;
   position: relative;
-  justify-content: center;
   align-items: center;
-  padding-left: 10px;
+  padding-left: 30px;
   margin-top: 6px;
   margin-bottom: 6px;
   cursor: pointer;
